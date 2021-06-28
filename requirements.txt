@@ -1,0 +1,4 @@
+pytz==2020.5
+aiocqhttp==1.3.0
+requests==2.21.0
+beautifulsoup4==4.9.3
