@@ -4,6 +4,12 @@ from .utils import *
 from .search import *
 from . import sv
 
+@sv.on_fullmatch(('leetcode','lc', '力扣'), only_to_me = True)
+async def leetcodeDaily(bot, ev):
+    data = load_json("leetcode_daily.json")
+    text = get_problem_remind(data['id'], data['title'], data['date'], data['difficulty'], data['url'], data['content'])
+    await bot.finish(ev, text)
+
 @sv.on_fullmatch(('atcoder','at', 'ac'), only_to_me = True)
 async def contestatcode(bot, ev):
     msg = load_json("atcoder.json")
@@ -48,6 +54,7 @@ async def notice(bot, ev):
             data['group'].append(gid)
             save_json("group.json", data)
             msg = '成功启用消息通知啦！'
+            group_list = load_json("group.json")
     else:
         msg = '你没有权力哦！'
     await bot.finish(ev, msg)
@@ -65,6 +72,7 @@ async def CancelNotice(bot, ev):
             data['group'].remove(gid)
             save_json("group.json", data)
             msg = '成功取消消息通知啦！'
+            group_list = load_json("group.json")
     else:
         msg = '你没有权力哦！'
     await bot.finish(ev, msg)

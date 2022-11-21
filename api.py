@@ -5,9 +5,39 @@ import pytz
 from aiocqhttp.exceptions import Error as CQHttpError
 import requests
 from bs4 import BeautifulSoup
+import aiohttp
+import asyncio
+import re
+
+Headers = {
+    "origin": "https://leetcode-cn.com",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
+}
 
 
-def getNiuKeSchool():
+async def getLeetcodeDaily() -> dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.post("https://leetcode.cn/graphql", json={"operationName": "questionOfToday", "variables": {}, "query": "query questionOfToday { todayRecord {   question {     questionFrontendId     questionTitleSlug     __typename   }   lastSubmission {     id     __typename   }   date   userStatus   __typename }}"}, headers=Headers, timeout=5) as response:
+            RawData = await response.json(content_type=None)
+            EnglishTitle = RawData["data"]["todayRecord"][0]["question"]["questionTitleSlug"]
+            Date = RawData["data"]["todayRecord"][0]["date"]
+            QuestionUrl = f"https://leetcode.cn/problems/{EnglishTitle}"
+        async with session.post("https://leetcode.cn/graphql", json={"operationName": "questionData", "variables": {"titleSlug": EnglishTitle}, "query": "query questionData($titleSlug: String!) {  question(titleSlug: $titleSlug) {    questionId    questionFrontendId    boundTopicId    title    titleSlug    content    translatedTitle    translatedContent    isPaidOnly    difficulty    likes    dislikes    isLiked    similarQuestions    contributors {      username      profileUrl      avatarUrl      __typename    }    langToValidPlayground    topicTags {      name      slug      translatedName      __typename    }    companyTagStats    codeSnippets {      lang      langSlug      code      __typename    }    stats    hints    solution {      id      canSeeDetail      __typename    }    status    sampleTestCase    metaData    judgerAvailable    judgeType    mysqlSchemas    enableRunCode    envInfo    book {      id      bookName      pressName      source      shortDescription      fullDescription      bookImgUrl      pressImgUrl      productUrl      __typename    }    isSubscribed    isDailyQuestion    dailyRecordStatus    editorType    ugcQuestionId    style    __typename  }}"}, headers=Headers, timeout=5) as response:
+            RawData = await response.json(content_type=None)
+            Data = RawData["data"]["question"]
+            ID = Data["questionFrontendId"]
+            Difficulty = Data["difficulty"]
+            ChineseTitle = Data["translatedTitle"]
+            Content = re.sub(r"(<\w+>|</\w+>)", "", Data["translatedContent"]).replace("&nbsp;", "").replace(
+                "&lt;", "<").replace("\t", "").replace("\n\n", "\n").replace("\n\n", "\n")
+            data = {"id": ID, "title": ChineseTitle, "difficulty": Difficulty,
+                    "content": Content, "url": QuestionUrl, "date": Date}
+
+        save_json("leetcode_daily.json", data)
+
+
+
+async def getNiuKeSchool():
     url = 'https://ac.nowcoder.com/acm/contest/vip-index?topCategoryFilter=14'
 
     r = requests.get(url)
@@ -33,7 +63,7 @@ def getNiuKeSchool():
 
         name.append(a[0].string)
         link.append("https://ac.nowcoder.com" + a[0]['href'])
-        time.append(li.string[5:21])
+        time.append(li.string[9:25])
 
     data = {}
 
@@ -45,7 +75,7 @@ def getNiuKeSchool():
     save_json("niuke_school.json", data)
 
 
-def getAtcoder():
+async def getAtcoder():
     url = 'https://atcoder.jp/'
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0)Gecko/20100101 Firefox/66.0"
@@ -58,9 +88,8 @@ def getAtcoder():
     if div is None:
 
         print("最近没有比赛")
-        data = {"最近没有比赛" : "......"}
+        data = {"最近没有比赛": "......"}
         save_json("atcoder.json", data)
-
 
     else:
         name = []
@@ -73,23 +102,23 @@ def getAtcoder():
             time.append(a[0].string)
             name.append(a[1].string)
 
-
         data = {}
 
         for i in range(0, len(name)):
             ti = time[i][:-8]
             date = datetime.strptime(ti, '%Y-%m-%d %H:%M')
            # print(date)
-            #print(name[i])
+            # print(name[i])
             data[name[i]] = {}
-            data[name[i]]['time'] = (date - timedelta(hours = 1)).strftime("%Y-%m-%d %H:%M")
+            data[name[i]]['time'] = (
+                date - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M")
             data[name[i]]['link'] = link[i]
 
        # print(data)
         save_json("atcoder.json", data)
 
 
-def getCodeChef():
+async def getCodeChef():
     url = 'https://www.codechef.com/contests'
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"
@@ -122,7 +151,8 @@ def getCodeChef():
 
     for i in range(0, len(time)):
         date = datetime.strptime(time[i], '%d %b %Y  %H:%M:%S')
-        time[i] = (date + timedelta(hours = 2, minutes = 30)).strftime("%Y-%m-%d %H:%M")  # 印度与中国时间相差2时30分
+        time[i] = (date + timedelta(hours=2, minutes=30)
+                   ).strftime("%Y-%m-%d %H:%M")  # 印度与中国时间相差2时30分
     # 创建字典 比赛名称-->时间
     data = {}
 
@@ -135,7 +165,7 @@ def getCodeChef():
     save_json("codechef.json", data)
 
 
-def getCodefores():
+async def getCodefores():
     contest_name = []
     contest_time = []
     contest_id = []
@@ -153,7 +183,8 @@ def getCodefores():
                 if td.text.count('\n') <= 2:
                     contest_name.append(td.text.strip())
                 else:
-                    contest_name.append(td.text[:td.text.find('\n', td.text.find('\n') + 1) + 1].strip())
+                    contest_name.append(td.text[:td.text.find(
+                        '\n', td.text.find('\n') + 1) + 1].strip())
                 contest_id.append(tr.get('data-contestid'))
                 break
 
@@ -167,20 +198,24 @@ def getCodefores():
         t = []
         for it in contest_time:
             dete = datetime.strptime(it, '%b/%d/%Y %H:%M')
-            #print(dete)
-            times = dete + timedelta(hours = 5, minutes = 0)
+            # print(dete)
+            times = dete + timedelta(hours=5, minutes=0)
             t.append(times.strftime("%Y-%m-%d %H:%M"))
         data = {}
         for i in range(0, len(contest_time)):
-            if 'Div. 1' in contest_name[i]:
+            if 'Div. 1' in contest_name[i] and 'Div. 1 + Div. 2' not in contest_name[i]:
                 continue
+            if contest_name[i] in data.keys():
+                contest_name[i] = contest_name[i] + f"_{i}"
             data[contest_name[i]] = {}
-            data[contest_name[i]]['time']= t[i]
-            data[contest_name[i]]['link']= "https://codeforces.com/contest/" + contest_id[i]
+            data[contest_name[i]]['time'] = t[i]
+            data[contest_name[i]
+                 ]['link'] = "https://codeforces.com/contest/" + contest_id[i]
 
         save_json("cf.json", data)
 
-def getNiuKe():
+
+async def getNiuKe():
     url = 'https://ac.nowcoder.com/acm/contest/vip-index?topCategoryFilter=13'
     html = requests.get(url)
     if html.status_code != 200:
@@ -190,7 +225,8 @@ def getNiuKe():
         data = {}
         data1 = {}
 
-        div = soup.find("div", class_="nk-main with-banner-page clearfix js-container")
+        div = soup.find(
+            "div", class_="nk-main with-banner-page clearfix js-container")
         div_content = div.find("div", class_="nk-content")
         div_contest = div_content.find("div", class_="platform-mod js-current")
         for contest in div_contest.find_all("div", class_="platform-item js-item"):
@@ -205,8 +241,8 @@ def getNiuKe():
         name = list(data)
         f = 0
         for it in name:
-            time = data[it][:21]
-            time = time[5:]
+            time = data[it][:25]
+            time = time[9:]
             data[it] = time
             data[it] = {}
             data[it]['time'] = time
@@ -214,7 +250,8 @@ def getNiuKe():
 
         save_json("niuke.json", data)
 
-def getNews():
+
+async def getNews():
     url = 'https://news.cnblogs.com/'
     html = requests.get(url)
     soup = BeautifulSoup(html.text, "html.parser")
@@ -229,6 +266,6 @@ def getNews():
     text = ""
     for i in range(0, 10):
         #cnt = random.randint(0, len(content))
-        text += str(i +1) +"." + content[i] +"\n"
-        text +=  'https://news.cnblogs.com' + link[i] +"\n"
+        text += str(i + 1) + "." + content[i] + "\n"
+        text += 'https://news.cnblogs.com' + link[i] + "\n"
     return text
