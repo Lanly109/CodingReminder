@@ -1,10 +1,11 @@
 from datetime import datetime
 from .utils import *
 from .api import *
-from . import sv
-from . import contest_list
+from .oldapi import *
+from . import sv, files
 from . import group_list
 from . import bot
+from nonebot import on_startup
 
 @sv.scheduled_job('interval', minutes=120)  # 2小时进行1次爬虫
 async def loadMsg():
@@ -13,15 +14,7 @@ async def loadMsg():
     except:
         pass
     try:
-        await getCodefores()
-    except:
-        pass
-    try:
-        await getCodeChef()
-    except:
-        pass
-    try:
-        await getAtcoder()
+        await getContest()
     except:
         pass
     try:
@@ -49,31 +42,39 @@ async def leetcodeDaily():
 async def CodingCheck ():
     global bot
     global group_list
-    global contest_list
 
     now = datetime.now()
 
-    for contest_name, contest_file in contest_list.items():
-        name, info = getFirstcontest(contest_file)
-        if name is None:
+    for contest_file in files:
+        contests = await get_upcoming_contest(contest_file)
+        if contests is None:
             continue
-        if 'time' not in info:
-            continue 
-        time = datetime.strptime(info['time'],  "%Y-%m-%d %H:%M")
-        link = info['link']
+        for name, info in contests:
+            time = datetime.strptime(info['start_time'],  "%Y-%m-%d %H:%M")
+            link = info['link']
 
-        delta = time - now
-        if 3540 < delta.total_seconds() <= 3600:
-            msg = get_contest_remind(contest_name, name, time, link)
-            for gid in group_list['group']:
-                await bot.send_group_msg(group_id = gid, message = msg)
+            delta = time - now
+            if 3540 < delta.total_seconds() <= 3600:
+                msg = get_contest_remind(name, time, link)
+                for gid in group_list['contest']:
+                    try:
+                        await bot.send_group_msg(group_id = gid, message = msg)
+                    except Exception as e:
+                        print(e)
+                        pass
+
+@on_startup
+async def init():
+    await do_flush()
 
 @sv.on_fullmatch('flush', only_to_me = True)
 async def flush(bot, ev):
+    await do_flush()
+    await bot.finish(ev, "ok")
+
+async def do_flush():
+    await getContest()
     await getNiuKe()
-    await getCodefores()
-    await getCodeChef()
-    await getAtcoder()
     await getNiuKeSchool()
     await getLeetcodeDaily()
-    await bot.finish(ev, "ok")
+

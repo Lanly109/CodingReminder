@@ -1,9 +1,6 @@
 from .utils import *
 from bs4 import BeautifulSoup
 import requests
-# from datetime import datetime
-# import pymysql
-from aiocqhttp.exceptions import Error as CQHttpError
 from requests import exceptions
 
 # def mysqlConnect(account):

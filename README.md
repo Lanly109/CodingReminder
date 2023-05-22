@@ -1,12 +1,22 @@
 # 算法竞赛开赛提醒
 
-支持[Codeforces](https://codeforces.com/),[Atcode](https://atcoder.jp),[牛客](https://ac.nowcoder.com/acm/home)平台的赛前提醒~~Codechef可能由于页面结构更改导致原来的爬虫代码解析不到信息先咕了~~
+支持[Codeforces](https://codeforces.com/),[Atcode](https://atcoder.jp),[牛客](https://ac.nowcoder.com/acm/home)等众多平台的赛前提醒
 
 会在比赛开始前一小时将比赛信息和链接推送到群上。
 
 代码来源于[QQ小明机器人插件](https://github.com/bobby285271/xiaoming-bot)
 
 对服务端代码重构，适配[Hoshinobot](https://github.com/Ice-Cirno/HoshinoBot).
+
+## 更新日志
+
+### 2023.5.21
+
+数据源更改为[clist](https://clist.by)，需自行注册帐号，然后在[api文档](https://clist.by/api/v3/doc/)里点击`show my api-key`，复制`Param query`的内容，填写在`api.py`的`apikey`中，将开头的`/?`替换成`&`。
+
+因为`clist`有收录了很多比赛，包括`ctf`比赛，可以在[filters](https://clist.by/settings/filters/)设置过滤规则，这样`api`返回结果里仅包含这些比赛信息了。比如算法竞赛的可以选择以下网址。
+
+![algorithm_contest](README-img/algorithm_contest.png)
 
 ## 安装方法
 
@@ -28,10 +38,10 @@ pip install -r requirements.txt
 
 ## 使用方法
 
-- @bot cf （获取Codeforces比赛信息）
-- @bot 牛客 （获取牛客比赛信息）
-- @bot Codechef (获取codechef比赛信息)
-- @bot Atcoder(获取atcoder比赛信息)
-- @bot find tourist (查找tourist cf信息) 
-- @bot 启动消息通知
-- @bot 取消消息通知
+- 输入以下关键字获得比赛咨询：cf 牛客 atcoder ucup yukicoder leetcode codechef topcoder ctf
+- [今日比赛] 获取今日未举行的比赛
+- [明日比赛] 获取明日比赛
+- [当前比赛] 获取当前进行的比赛
+- find tourist (查找tourist cf信息) 
+- @bot 启动比赛通知
+- @bot 取消比赛通知

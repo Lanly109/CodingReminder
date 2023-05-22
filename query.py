@@ -2,85 +2,147 @@ import hoshino
 from hoshino import priv
 from .utils import *
 from .search import *
-from . import sv
+from . import sv, files, group_list
 
-@sv.on_fullmatch(('leetcode','lc', '力扣'), only_to_me = True)
+@sv.on_fullmatch(('当前比赛'))
+async def contest_now(bot, ev):
+    global files
+    title = "当前进行的比赛：\n"
+    text = ""
+    for file in files:
+        msg = await get_now_contest(file)
+        text += getText(msg)
+    text = title + text
+    text = text.strip()
+    await bot.finish(ev, text)
+
+@sv.on_fullmatch(('今日比赛'))
+async def contest_today(bot, ev):
+    global files
+    title = "今日比赛：\n"
+    text = ""
+    for file in files:
+        msg = await get_today_contest(file)
+        text += getText(msg)
+    text = title + text
+    text = text.strip()
+    await bot.finish(ev, text)
+
+@sv.on_fullmatch(('明日比赛'))
+async def contest_tomorrow(bot, ev):
+    global files
+    title = "明日比赛：\n"
+    text = ""
+    for file in files:
+        msg = await get_tomorrow_contest(file)
+        text += getText(msg)
+    text = title + text
+    text = text.strip()
+    await bot.finish(ev, text)
+
+@sv.on_fullmatch(('leetcode','lc', '力扣'))
 async def leetcodeDaily(bot, ev):
-    data = load_json("leetcode_daily.json")
-    text = get_problem_remind(data['id'], data['title'], data['date'], data['difficulty'], data['url'], data['content'])
+    msg = await get_contest("contests.json", lambda start, end, link: "leetcode" in link)
+    text = "leetcode:\n" + getText(msg)
+    text = text.strip()
     await bot.finish(ev, text)
 
-@sv.on_fullmatch(('atcoder','at', 'ac'), only_to_me = True)
-async def contestatcode(bot, ev):
-    msg = load_json("atcoder.json")
-    text = "比赛平台：Atcoder\n"
-    text += getText(msg)
+@sv.on_fullmatch(('ctf'))
+async def contest_ctf(bot, ev):
+    msg = await get_contest("contests.json", lambda start, end, link: any([i in link for i in ["ctftime", "hackerearth", "hackerrank"]]))
+    text = "ctf:\n" + getText(msg)
+    text = text.strip()
     await bot.finish(ev, text)
 
-@sv.on_fullmatch(('codechef','cc', 'chef','Codechef','CODECHEF'), only_to_me = True)
-async def contestCodeChef(bot, ev):
-    msg = load_json("codechef.json")
-    text = "比赛平台：CodeChef\n"
-    text += getText(msg)
+
+@sv.on_fullmatch(('topcoder'))
+async def contest_topcoder(bot, ev):
+    msg = await get_contest("contests.json", lambda start, end, link: "topcoder" in link)
+    text = "topcoder:\n" + getText(msg)
+    text = text.strip()
+    await bot.finish(ev, text)
+
+@sv.on_fullmatch(('atcoder', "at"))
+async def contest_atcode(bot, ev):
+    msg = await get_contest("contests.json", lambda start, end, link: "atcoder" in link)
+    text = "atcoder:\n" + getText(msg)
+    text = text.strip()
+    await bot.finish(ev, text)
+
+@sv.on_fullmatch(('ucup'))
+async def contest_ucup(bot, ev):
+    msg = await get_contest("contests.json", lambda start, end, link: "ucup" in link)
+    text = "ucup:\n" + getText(msg)
+    text = text.strip()
+    await bot.finish(ev, text)
+
+@sv.on_fullmatch(('yukicoder', 'yuki'))
+async def contest_yukicode(bot, ev):
+    msg = await get_contest("contests.json", lambda start, end, link: "yukicoder" in link)
+    text = "yukicoder:\n" + getText(msg)
+    text = text.strip()
+    await bot.finish(ev, text)
+
+@sv.on_fullmatch(('codechef'))
+async def contest_codechef(bot, ev):
+    msg = await get_contest("contests.json", lambda start, end, link: "codechef" in link)
+    text = "codechef:\n" + getText(msg)
+    text = text.strip()
     await bot.finish(ev, message = text)
 
-@sv.on_fullmatch(('cf', 'CF', 'CODEFORCES','codeforces','CodeForces'), only_to_me = True)
-async def contestCF(bot, ev):
-    msg = load_json("cf.json")
-    text = "比赛平台：Codeforces\n"
-    text += getText(msg)
+@sv.on_fullmatch(('cf', 'codeforces'))
+async def contest_codeforces(bot, ev):
+    msg = await get_contest("contests.json", lambda start, end, link: "codeforces" in link)
+    text = "codeforces:\n" + getText(msg)
+    text = text.strip()
     await bot.finish(ev, text)
 
-@sv.on_fullmatch(('牛客', 'nk', 'Nk', 'NIUKE', 'Nk'), only_to_me = True)
-async def contestNIUKE(bot, ev):
-    msg = load_json("niuke.json")
-    text = "牛客:\n"
-    text += getText(msg)
+@sv.on_fullmatch(('牛客'))
+async def contest_niuke(bot, ev):
+    msg = await get_contest("niuke.json", lambda start, end, link: True)
+    text = "牛客:\n" + getText(msg)
     await bot.send(ev, text)
-    msg = load_json("niuke_school.json")
-    text = "牛客高校： \n"
+    msg = await get_contest("niuke_school.json", lambda start, end, link: True)
     text += getText(msg)
+    text = text.strip()
     await bot.finish(ev, text)
 
-@sv.on_fullmatch('启动消息通知', only_to_me = True)
+@sv.on_fullmatch('启动比赛通知', only_to_me = True)
 async def notice(bot, ev):
+    global group_list
     uid = ev.user_id
     gid = ev.group_id
     if priv.check_priv(ev, priv.ADMIN):
-        data = load_json("group.json")
-        if gid in data['group']:
-            msg = '本群已经启用消息通知啦~'
+        if gid in group_list['contest']:
+            msg = '本群已经启用比赛通知啦~'
         else:
-            data['group'].append(gid)
-            save_json("group.json", data)
-            msg = '成功启用消息通知啦！'
-            group_list = load_json("group.json")
+            group_list['contest'].append(gid)
+            save_json("group.json", group_list)
+            msg = '成功启用比赛通知啦！'
     else:
         msg = '你没有权力哦！'
     await bot.finish(ev, msg)
 
 
-@sv.on_fullmatch('取消消息通知', only_to_me = True)
+@sv.on_fullmatch('取消比赛通知', only_to_me = True)
 async def CancelNotice(bot, ev):
+    global group_list
     uid = ev.user_id
     gid = ev.group_id
     if priv.check_priv(ev, priv.ADMIN):
-        data = load_json("group.json")
-        if gid not in data['group']:
+        if gid not in group_list['contest']:
             msg = '本群没有启用消息通知啦~'
         else:
-            data['group'].remove(gid)
-            save_json("group.json", data)
+            group_list['contest'].remove(gid)
+            save_json("group.json", group_list)
             msg = '成功取消消息通知啦！'
-            group_list = load_json("group.json")
     else:
         msg = '你没有权力哦！'
     await bot.finish(ev, msg)
 
-@sv.on_prefix('find', only_to_me = True)
+@sv.on_prefix('find')
 async def get_cf_msg(bot, ev):
     name = ev.message.extract_plain_text()
-    print(name)
     uid = ev.user_id
     msg = getCfSelfMsg(name) if len(name) < 60 else "不要捣乱哦！  [CQ:face,id=106]"
     if "超时" in msg or "无法访问" in msg:

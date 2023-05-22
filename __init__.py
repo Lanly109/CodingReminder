@@ -2,13 +2,13 @@ import hoshino
 from hoshino import Service, priv
 from .utils import *
 
-_help ='''- [@bot cf] 获取Codeforces比赛信息
-- [@bot 牛客] 获取牛客比赛信息
-- [@bot Codechef] 获取codechef比赛信息
-- [@bot Atcoder] 获取atcoder比赛信息
-- [@bot find tourist] 查找tourist cf信息
-- [@bot 启动消息通知] 启动比赛提醒功能，提前一小时将比赛链接发在群上
-- [@bot 取消消息通知] 停用比赛提醒功能'''
+_help ='''- 输入以下关键字获得比赛咨询：cf 牛客 atcoder ucup yukicoder leetcode codechef topcoder ctf
+- [今日比赛] 获取今日未举行的比赛
+- [明日比赛] 获取明日比赛
+- [当前比赛] 获取当前进行的比赛
+- [find tourist] 查找tourist cf信息
+- [@bot 启动比赛通知] 启动比赛提醒功能，提前一小时将比赛链接发在群上
+- [@bot 取消比赛通知] 停用比赛提醒功能'''
 
 sv = Service(
     name = '算法竞赛开赛提醒',  #功能名
@@ -22,10 +22,10 @@ sv = Service(
 
 bot = hoshino.get_bot()
 
-@sv.on_fullmatch('帮助CodingReminder')
+@sv.on_fullmatch('帮助比赛提醒')
 async def tenki_help_chat(bot, ev):
     await bot.finish(ev, _help)
 
-contest_list = load_json("contestlist.json")
-
 group_list = load_json("group.json")
+
+files = ["contests.json", "niuke.json", "niuke_school.json"]
