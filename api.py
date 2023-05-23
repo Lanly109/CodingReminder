@@ -10,15 +10,16 @@ async def getContest():
     resp = requests.get(url, timeout=10)
     resp.raise_for_status()
     data = dict(resp.json())
-    contests = {}
+    contests = []
     for contest in data['objects']:
         name = contest['event']
         start_time = (datetime.strptime(contest['start'], "%Y-%m-%dT%H:%M:%S") + timedelta(hours = 8)).strftime("%Y-%m-%d %H:%M")
         end_time = (datetime.strptime(contest['end'], "%Y-%m-%dT%H:%M:%S") + timedelta(hours = 8)).strftime("%Y-%m-%d %H:%M")
-        contests[name] = {
+        contests.append({
+            "name": name,
             "start_time" : start_time,
             "end_time" : end_time,
             "duration" : contest['duration'],
             "link" : contest['href']
-        }
+        })
     save_json("contests.json", contests)

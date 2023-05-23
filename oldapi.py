@@ -43,10 +43,7 @@ async def getNiuKeSchool():
 
     div = soup.find_all("div", class_='platform-item js-item')
 
-    name = []
-    start = []
-    end = []
-    link = []
+    data = []
 
     for it in div:
         div1 = it.find("div", class_='platform-item-cont')
@@ -59,18 +56,16 @@ async def getNiuKeSchool():
             if ("加密" in i[0]['title']):
                 continue
 
-        name.append(a[0].string)
-        link.append("https://ac.nowcoder.com" + a[0]['href'])
-        start.append(li.string[9:25])
-        end.append(li.string[33:49])
-
-    data = {}
-
-    for i in range(0, len(name)):
-        data[name[i]] = {}
-        data[name[i]]['start_time'] = start[i]
-        data[name[i]]['end_time'] = end[i]
-        data[name[i]]['link'] = link[i]
+        name = a[0].string
+        link = "https://ac.nowcoder.com" + a[0]['href']
+        start = li.string[9:25]
+        end = li.string[33:49]
+        data.append({
+            'name': name,
+            'start_time': start,
+            'end_time': end,
+            'link': link,
+            })
 
     save_json("niuke_school.json", data)
 
@@ -102,18 +97,17 @@ async def getAtcoder():
             time.append(a[0].string)
             name.append(a[1].string)
 
-        data = {}
+        data = []
 
         for i in range(0, len(name)):
             ti = time[i][:-8]
             date = datetime.strptime(ti, '%Y-%m-%d %H:%M')
-           # print(date)
-            # print(name[i])
-            data[name[i]] = {}
-            data[name[i]]['start_time'] = (
-                date - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M")
-            data[name[i]]['end_time'] = ""
-            data[name[i]]['link'] = link[i]
+            data.append({
+                'name': name[i],
+                'start_time': (date - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M"),
+                'end_time': "",
+                'link': link[i],
+                })
 
        # print(data)
         save_json("atcoder.json", data)
@@ -154,14 +148,15 @@ async def getCodeChef():
         date = datetime.strptime(time[i], '%d %b %Y  %H:%M:%S')
         time[i] = (date + timedelta(hours=2, minutes=30)
                    ).strftime("%Y-%m-%d %H:%M")  # 印度与中国时间相差2时30分
-    # 创建字典 比赛名称-->时间
-    data = {}
+    data = []
 
     for i in range(0, len(time)):
-        data[name[i]] = {}
-        data[name[i]]['start_time'] = time[i]
-        data[name[i]]['end_time'] = ""
-        data[name[i]]['link'] = link[i]
+        data.append({
+            'name': name[i],
+            'start_time': time[i],
+            'end_time': "",
+            'link': link[i],
+            })
 
     # 将获取的字典信息 导入json  不建议用数据库 因为信息比较少用json文件方便
     save_json("codechef.json", data)
@@ -203,17 +198,14 @@ async def getCodefores():
             # print(dete)
             times = dete + timedelta(hours=5, minutes=0)
             t.append(times.strftime("%Y-%m-%d %H:%M"))
-        data = {}
+        data = []
         for i in range(0, len(contest_time)):
-            if 'Div. 1' in contest_name[i] and 'Div. 1 + Div. 2' not in contest_name[i]:
-                continue
-            if contest_name[i] in data.keys():
-                contest_name[i] = contest_name[i] + f"_{i}"
-            data[contest_name[i]] = {}
-            data[contest_name[i]]['start_time'] = t[i]
-            data[contest_name[i]]['end_time'] = ""
-            data[contest_name[i]
-                 ]['link'] = "https://codeforces.com/contest/" + contest_id[i]
+            data.append({
+                'name': contest_name[i],
+                'start_time': t[i],
+                'end_time': "",
+                'link': "https://codeforces.com/contest/" + contest_id[i],
+                })
 
         save_json("cf.json", data)
 
@@ -225,8 +217,7 @@ async def getNiuKe():
         return
     else:
         soup = BeautifulSoup(html.text, "html.parser")
-        data = {}
-        data1 = {}
+        data = []
 
         div = soup.find(
             "div", class_="nk-main with-banner-page clearfix js-container")
@@ -237,19 +228,18 @@ async def getNiuKe():
             a = next.find("a")
             li = next.find('li', class_='match-time-icon')
             link = a['href']
+
             name = a.string
-            data[name] = li.string
-            data1[name] = "https://ac.nowcoder.com" + link
-        name = list(data)
-        f = 0
-        for it in name:
-            start = data[it][9:25]
-            end = data[it][33:49]
-            data[it] = start
-            data[it] = {}
-            data[it]['start_time'] = start
-            data[it]['end_time'] = end
-            data[it]['link'] = data1[it]
+            tmp = li.string
+            start = tmp[9:25]
+            end = tmp[33:49]
+            link = "https://ac.nowcoder.com" + link
+            data.append({
+                'name': name,
+                'start_time': start,
+                'end_time': end,
+                'link': link,
+            })
 
         save_json("niuke.json", data)
 

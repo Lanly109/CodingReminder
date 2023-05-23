@@ -47,5 +47,3 @@ pip install -r requirements.txt
 - [明日比赛] 获取明日比赛
 - [当前比赛] 获取当前进行的比赛
 - find tourist (查找tourist cf信息) 
-- @bot 启动比赛通知
-- @bot 取消比赛通知

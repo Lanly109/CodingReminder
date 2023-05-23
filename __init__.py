@@ -7,8 +7,7 @@ _help ='''- 输入以下关键字获得比赛咨询：cf 牛客 atcoder ucup yuk
 - [明日比赛] 获取明日比赛
 - [当前比赛] 获取当前进行的比赛
 - [find tourist] 查找tourist cf信息
-- [@bot 启动比赛通知] 启动比赛提醒功能，提前一小时将比赛链接发在群上
-- [@bot 取消比赛通知] 停用比赛提醒功能'''
+还可以开启开赛提醒+leetcode每日一题服务'''
 
 sv_info = Service(
     name = '比赛查询',  #功能名

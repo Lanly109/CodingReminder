@@ -58,9 +58,10 @@ async def CodingCheck ():
 
     for contest_file in files:
         contests = await get_upcoming_contest(contest_file)
-        if contests is None:
+        if not contests:
             continue
-        for name, info in contests:
+        for info in contests:
+            name = info['name']
             start_time = datetime.strptime(info['start_time'],  "%Y-%m-%d %H:%M")
             end_time = datetime.strptime(info['end_time'],  "%Y-%m-%d %H:%M")
             link = info['link']
