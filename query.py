@@ -116,6 +116,11 @@ async def get_cf_msg(bot, ev):
         msg = "cf访问超时，请稍后查询qwq"
     elif "找不到" in msg:
         msg = "没找到这个人qwq"
+    elif not msg.startswith("不要捣乱哦") and not msg.endswith("[CQ:face,id=15][CQ:face,id=15]"):
+        msg = render_forward_msg([msg])
+        await bot.send_group_forward_msg(group_id=ev.group_id, messages=msg)
+        return
+    msg = f"[CQ:reply,id={ev.message_id}]" + msg
     await bot.finish(ev, msg)
 
 # @sv.on_fullmatch('通知我', only_to_me = True)

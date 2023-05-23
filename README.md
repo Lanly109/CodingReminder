@@ -14,6 +14,8 @@
 
 移除`group.json`，改用`server`的方式开关定时提醒。
 
+`find`结果改为转发消息，防止刷屏。错误消息采用`回复`功能。
+
 ### 2023.5.21
 
 数据源更改为[clist](https://clist.by)，需自行注册帐号，然后在[api文档](https://clist.by/api/v3/doc/)里点击`show my api-key`，复制`Param query`的内容，填写在`api.py`的`apikey`中，将开头的`/?`替换成`&`。

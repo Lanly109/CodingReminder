@@ -92,3 +92,15 @@ def get_problem_full(id, name, date, difficulty, url, content):
 
     return text
 
+def render_forward_msg(msg_list: list, uid=244115379, name='cf搜寻者'):
+    forward_msg = []
+    for msg in msg_list:
+        forward_msg.append({
+            "type": "node",
+            "data": {
+                "name": str(name),
+                "uin": str(uid),
+                "content": msg
+            }
+        })
+    return forward_msg
