@@ -60,10 +60,11 @@ def getText(msg):
         text = "无"
     return text
 
-def get_contest_remind(name, time, link):
+def get_contest_remind(name, start_time, end_time, link):
     text = f'''比赛通知！
 比赛：{name}
-比赛时间：{time}
+开始时间：{start_time}
+结束时间：{end_time}
 比赛链接：{link}
 '''.strip()
 
@@ -73,6 +74,7 @@ def get_problem_remind(id, name, date, difficulty, url, content):
     text = f'''Leetcode {date} 每日一题！
 题目：{id}.{name}
 难度：{difficulty}
+链接：{url}
 '''.strip()
 
     return text
@@ -86,3 +88,4 @@ def get_problem_full(id, name, date, difficulty, url, content):
 '''.strip()
 
     return text
+

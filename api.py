@@ -7,7 +7,8 @@ apikey = "&username=xxxx&api_key=xxxx"
 url = "https://clist.by:443/api/v3/contest/?upcoming=true&filtered=true&order_by=start&format=json" + apikey
 
 async def getContest():
-    resp = requests.get(url, timeout=5)
+    resp = requests.get(url, timeout=10)
+    resp.raise_for_status()
     data = dict(resp.json())
     contests = {}
     for contest in data['objects']:

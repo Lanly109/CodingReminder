@@ -2,7 +2,7 @@ import hoshino
 from hoshino import priv
 from .utils import *
 from .search import *
-from . import sv, files, group_list
+from . import sv_info as sv, files
 
 @sv.on_fullmatch(('当前比赛'))
 async def contest_now(bot, ev):
@@ -62,7 +62,7 @@ async def contest_topcoder(bot, ev):
     text = text.strip()
     await bot.finish(ev, text)
 
-@sv.on_fullmatch(('atcoder', "at"))
+@sv.on_fullmatch(('atcoder', "atc"))
 async def contest_atcode(bot, ev):
     msg = await get_contest("contests.json", lambda start, end, link: "atcoder" in link)
     text = "atcoder:\n" + getText(msg)
@@ -106,39 +106,6 @@ async def contest_niuke(bot, ev):
     text += getText(msg)
     text = text.strip()
     await bot.finish(ev, text)
-
-@sv.on_fullmatch('启动比赛通知', only_to_me = True)
-async def notice(bot, ev):
-    global group_list
-    uid = ev.user_id
-    gid = ev.group_id
-    if priv.check_priv(ev, priv.ADMIN):
-        if gid in group_list['contest']:
-            msg = '本群已经启用比赛通知啦~'
-        else:
-            group_list['contest'].append(gid)
-            save_json("group.json", group_list)
-            msg = '成功启用比赛通知啦！'
-    else:
-        msg = '你没有权力哦！'
-    await bot.finish(ev, msg)
-
-
-@sv.on_fullmatch('取消比赛通知', only_to_me = True)
-async def CancelNotice(bot, ev):
-    global group_list
-    uid = ev.user_id
-    gid = ev.group_id
-    if priv.check_priv(ev, priv.ADMIN):
-        if gid not in group_list['contest']:
-            msg = '本群没有启用消息通知啦~'
-        else:
-            group_list['contest'].remove(gid)
-            save_json("group.json", group_list)
-            msg = '成功取消消息通知啦！'
-    else:
-        msg = '你没有权力哦！'
-    await bot.finish(ev, msg)
 
 @sv.on_prefix('find')
 async def get_cf_msg(bot, ev):

@@ -2,41 +2,52 @@ from datetime import datetime
 from .utils import *
 from .api import *
 from .oldapi import *
-from . import sv, files
-from . import group_list
+from . import sv_cron as sv, sv_lt, files
 from . import bot
 from nonebot import on_startup
+from hoshino.config import SUPERUSERS
+import random
+
+    
+async def report_to_su(sess, msg_with_sess, msg_wo_sess):
+    if sess:
+        await sess.send(msg_with_sess)
+    else:
+        global bot
+        sid = bot.get_self_ids()
+        if len(sid) > 0:
+            sid = random.choice(sid)
+            await bot.send_private_msg(self_id=sid, user_id=SUPERUSERS[0], message=msg_wo_sess)
 
 @sv.scheduled_job('interval', minutes=120)  # 2小时进行1次爬虫
 async def loadMsg():
     try:
         await getNiuKe()
-    except:
-        pass
+    except Exception as e:
+        sv.logger.exception(e)
+        await report_to_su(None, f'Error: {e}', f'牛客比赛信息定时更新时遇到错误：\n{e}')
     try:
         await getContest()
-    except:
-        pass
+    except Exception as e:
+        sv.logger.exception(e)
+        await report_to_su(None, f'Error: {e}', f'比赛信息定时更新时遇到错误：\n{e}')
     try:
         await getNiuKeSchool()
-    except:
-        pass
+    except Exception as e:
+        sv.logger.exception(e)
+        await report_to_su(None, f'Error: {e}', f'牛客高校比赛信息定时更新时遇到错误：\n{e}')
     try:
         await getLeetcodeDaily()
-    except:
-        pass
+    except Exception as e:
+        sv.logger.exception(e)
+        await report_to_su(None, f'Error: {e}', f'leetcode每日一题定时更新时遇到错误：\n{e}')
 
-@sv.scheduled_job('cron', hour='8', minute='00', jitter=00)
+@sv_lt.scheduled_job('cron', hour='8', minute='00', jitter=00)
 async def leetcodeDaily():
-    return
     await getLeetcodeDaily()
-    global bot
-    global group_list
-    global contest_list
     data = load_json("leetcode_daily.json")
     msg = get_problem_remind(data['id'], data['title'], data['date'], data['difficulty'], data['url'], data['content'])
-    for gid in group_list['group']:
-        await bot.send_group_msg(group_id = gid, message = msg)
+    await sv_lt.broadcast(msg, "leetcode_daily")
 
 @sv.scheduled_job('interval', minutes=1)
 async def CodingCheck ():
@@ -50,26 +61,30 @@ async def CodingCheck ():
         if contests is None:
             continue
         for name, info in contests:
-            time = datetime.strptime(info['start_time'],  "%Y-%m-%d %H:%M")
+            start_time = datetime.strptime(info['start_time'],  "%Y-%m-%d %H:%M")
+            end_time = datetime.strptime(info['end_time'],  "%Y-%m-%d %H:%M")
             link = info['link']
 
-            delta = time - now
+            delta = start_time - now
             if 3540 < delta.total_seconds() <= 3600:
-                msg = get_contest_remind(name, time, link)
-                for gid in group_list['contest']:
-                    try:
-                        await bot.send_group_msg(group_id = gid, message = msg)
-                    except Exception as e:
-                        print(e)
-                        pass
+                msg = get_contest_remind(name, start_time, end_time, link)
+                await sv.broadcast(msg, "contest_remaind")
 
 @on_startup
 async def init():
-    await do_flush()
+    try:
+        await do_flush()
+    except Exception as e:
+        sv.logger.exception(e)
+        await report_to_su(None, f'Error: {e}', f'初始化比赛信息时遇到错误：\n{e}')
 
 @sv.on_fullmatch('flush', only_to_me = True)
 async def flush(bot, ev):
-    await do_flush()
+    try:
+        await do_flush()
+    except Exception as e:
+        sv.logger.exception(e)
+        await bot.finish(ev, f'Error: {e}')
     await bot.finish(ev, "ok")
 
 async def do_flush():
