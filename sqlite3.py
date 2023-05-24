@@ -34,7 +34,7 @@ class RecordDAO:
         now = time.time() // 1
         with self.connect() as conn:
             r = conn.execute(
-                f"INSERT INTO {self.table_name}(name, status, time) VALUES('{name}', '{msg}', {now})",
+                f"REPLACE INTO {self.table_name}(name, status, time) VALUES('{name}', '{msg}', {now})",
             ).fetchall()
         return r
 
