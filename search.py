@@ -1,33 +1,16 @@
 from .utils import *
+from .sqlite3 import RecordDAO, sqlite3
 from bs4 import BeautifulSoup
 import requests
 from requests import exceptions
+import os
+import time
 
-# def mysqlConnect(account):
-#     connect = pymysql.connect(**account)
-#     return connect
+db_path = os.path.join(os.path.dirname(__file__), "cf.db")
 
-# account = {
-#         'user': 'root',
-#         'password': 'zhaobo123..',
-#         'host': 'localhost',
-#         'database': 'cf'
-#     }
-# connect = mysqlConnect(account)
-# cursor = connect.cursor(cursor=pymysql.cursors.DictCursor)
+db = RecordDAO(db_path, "cfer")
 
-# def insertMsg(name, msg):
-#     try:
-#         sql = 'INSERT into codeforces  VALUES(\"%s\", \"%s\") on DUPLICATE key UPDATE cf_name = \"%s\", msg = \"%s\";' % (
-#         name, msg, name, msg)
-#         print(sql)
-#         cursor.execute(sql)
-#         connect.commit()
-#        # print("****")
-#     except:
-
-#         print("写入错误")
-
+CACHE_TIME = 60 * 60 * 24 * 2 # cache 2 days
 
 def getSorce(name):
     headers = {
@@ -65,6 +48,11 @@ def getSorce(name):
 
 
 def getCfSelfMsg(name):
+    history = db.get_cfer(name)
+    now = time.time() // 1
+    if history and now - history[2] < CACHE_TIME:
+        return history[1]
+
     url = "https://codeforc.es/contests/with/%s" % (name)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0)Gecko/20100101 Firefox/66.0"
@@ -76,6 +64,7 @@ def getCfSelfMsg(name):
         r.raise_for_status()
         if r.url != url:
             text = "找不到 " + name + " [CQ:face,id=15][CQ:face,id=15]"
+            db.insert_cfer(name, text)
             return text
         html = r.text
     except exceptions.Timeout as e:
@@ -134,6 +123,7 @@ def getCfSelfMsg(name):
 
     if contestNum == 0:
         text = name + " 还没有打过比赛呢[CQ:face,id=15][CQ:face,id=15]"
+        db.insert_cfer(name, text)
         return text
 
     sorce = getSorce(name)
@@ -180,40 +170,8 @@ def getCfSelfMsg(name):
 
     text += "(div3蓝名以上的时候打的比赛不算在内)"
     # print(text)
+    db.insert_cfer(name, text)
     return text
-
-# def getMsg(name, text):
-#     sql = "select * from codeforces;"
-#     cursor.execute(sql)
-#     row = cursor.fetchall()
-#     for it in row:
-#         name.append(it['cf_name'])
-#         text.append(it['msg'])
-
-# def updateMsg():
-#     name = []
-#     text = []
-#     getMsg(name, text)
-#     print(text)
-#     for i in range(0, len(name)):
-#         name[i] = name[i].split()[0]
-#         ans = getCfSelfMsg(name[i])
-#         if "超时" in ans  or "无法访问" in ans:
-#             continue
-#         text[i] = ans
-#     print("*"*10)
-#     print(text)
-#     for i in range(0, len(name)):
-#         insertMsg(name[i], text[i])
-
-# def getMysqlMsg(name):
-#     sql = 'select * from codeforces where cf_name =' +'\''  + name +'\';'
-#     print(sql)
-#     cursor.execute(sql)
-#     row = cursor.fetchone()
-#     return row
-
-
 
 # @nonebot.scheduler.scheduled_job('interval', minutes=1)
 # async def cloock():
@@ -229,13 +187,3 @@ def getCfSelfMsg(name):
 #     elif now.hour == 5 and now.minute == 10:
 #         updateMsg()
 #         await bot.send_private_msg(user_id=1173007724, message="数据爬取成功")
-
-
-
-
-
-
-
-
-
-

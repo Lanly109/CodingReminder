@@ -28,23 +28,47 @@ async def get_contest(file_name, is_ok):
 
 async def get_upcoming_contest(file_name):
     now = datetime.now()
-    return await get_contest(file_name, lambda start, end, link: now < start)
+    if isinstance(file_name, str):
+        return await get_contest(file_name, lambda start, end, link: now < start)
+    else:
+        result = []
+        for file in file_name:
+            result.extend(await get_contest(file, lambda start, end, link: now < start))
+        return result
 
 async def get_now_contest(file_name):
     now = datetime.now()
-    return await get_contest(file_name, lambda start, end, link: now >= start and now < end)
+    if isinstance(file_name, str):
+        return await get_contest(file_name, lambda start, end, link: now >= start and now < end)
+    else:
+        result = []
+        for file in file_name:
+            result.extend(await get_contest(file, lambda start, end, link: now >= start and now < end))
+        return result
 
 async def get_today_contest(file_name):
     now = datetime.now()
     today = now - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second)
     tomorrow = now + timedelta(days=1)
-    return await get_contest(file_name, lambda start, end, link: start >= today and end > now and start < tomorrow)
+    if isinstance(file_name, str):
+        return await get_contest(file_name, lambda start, end, link: start >= today and end > now and start < tomorrow)
+    else:
+        result = []
+        for file in file_name:
+            result.extend(await get_contest(file, lambda start, end, link: start >= today and end > now and start < tomorrow))
+        return result
 
 async def get_tomorrow_contest(file_name):
     now = datetime.now()
     tomorrow = now + timedelta(days=1) - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second)
     ttomorrow = tomorrow + timedelta(days=1) 
-    return await get_contest(file_name, lambda start, end, link: start >= tomorrow and start < ttomorrow)
+    if isinstance(file_name, str):
+        return await get_contest(file_name, lambda start, end, link: start >= tomorrow and start < ttomorrow)
+    else:
+        result = []
+        for file in file_name:
+            result.extend(await get_contest(file, lambda start, end, link: start >= tomorrow and start < ttomorrow))
+        return result
 
 def getText(msg):
     text = ""
