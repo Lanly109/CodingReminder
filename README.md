@@ -55,3 +55,5 @@ pip install -r requirements.txt
 - [明日比赛] 获取明日比赛
 - [当前比赛] 获取当前进行的比赛
 - find tourist (查找tourist cf信息) 
+- [洛谷月报 xxxx-xx] 获得xxxx年xx月的洛谷月报，省略则获得最新月报
+- [随机月报] 随机获得一份洛谷月报

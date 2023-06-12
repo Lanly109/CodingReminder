@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta
+import random
 import os
 
 def load_json(file_name) -> dict:
@@ -14,6 +15,21 @@ def save_json(file_name, args):
     path = os.path.join(os.path.dirname(__file__), file_name)
     with open(path, 'w', encoding='utf8') as f:
         json.dump(args , f, ensure_ascii=False, indent=2)
+
+async def get_luogu_newest_news():
+    now = datetime.now()
+    year = now.year
+    month = now.month
+    return await get_luogu_news_condition(year = year, month = month)
+
+async def get_luogu_news_condition(year:int = 0, month:int = 0):
+    news = load_json("luogu_news.json")
+    ret = [new for new in news.values() if (not year or new['year'] == year) and (not month or new['month'] == month)]
+    return ret
+
+async def get_luogu_random_news():
+    news = load_json("luogu_news.json")
+    return news[random.choice(list(news.keys()))]
 
 async def get_contest(file_name, is_ok):
     contests = load_json(file_name)
@@ -69,6 +85,27 @@ async def get_tomorrow_contest(file_name):
         for file in file_name:
             result.extend(await get_contest(file, lambda start, end, link: start >= tomorrow and start < ttomorrow))
         return result
+
+
+def get_luogu_news_text(news):
+    ret = ""
+    if not isinstance(news, list):
+        news = [news]
+    last_year = 0
+    last_month = 0
+    for new in news:
+        prefix = "" if new['year'] == last_year and new['month'] == last_month else f"{new['year']}年 {new['month']}月"
+        text = f'''
+{prefix}
+{new['title']}
+{new['url']}
+'''.strip()
+        ret += text + "\n\n"
+        last_year = new['year']
+        last_month = new['month']
+    if not ret:
+        ret = "无"
+    return ret.strip()
 
 def getText(msg):
     text = ""

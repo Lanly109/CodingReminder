@@ -42,6 +42,14 @@ async def loadMsg():
         sv.logger.exception(e)
         await report_to_su(None, f'Error: {e}', f'leetcode每日一题定时更新时遇到错误：\n{e}')
 
+@sv_lt.scheduled_job('cron', hour='4', minute='00', jitter=00)
+async def luogunews():
+    try:
+        await getLuoguYuebao()
+    except Exception as e:
+        sv.logger.exception(e)
+        await report_to_su(None, f'Error: {e}', f'洛谷日报定时更新时遇到错误：\n{e}')
+
 @sv_lt.scheduled_job('cron', hour='8', minute='00', jitter=00)
 async def leetcodeDaily():
     await getLeetcodeDaily()
@@ -93,4 +101,5 @@ async def do_flush():
     await getNiuKe()
     await getNiuKeSchool()
     await getLeetcodeDaily()
+    await getLuoguYuebao()
 

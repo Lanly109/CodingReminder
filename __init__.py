@@ -7,6 +7,8 @@ _help ='''- 输入以下关键字获得比赛咨询：cf 牛客 atcoder ucup yuk
 - [明日比赛] 获取明日比赛
 - [当前比赛] 获取当前进行的比赛
 - [find tourist] 查找tourist cf信息
+- [洛谷月报 xxxx-xx] 获得xxxx年xx月的洛谷月报，省略则获得最新月报
+- [随机月报] 随机获得一份洛谷月报
 还可以开启开赛提醒+leetcode每日一题服务'''
 
 sv_info = Service(

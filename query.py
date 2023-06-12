@@ -181,6 +181,42 @@ async def get_cf_msg(bot, ev):
     msg = f"[CQ:reply,id={ev.message_id}]" + msg
     await bot.finish(ev, msg)
 
+@sv.on_prefix('洛谷月报')
+async def get_luogu_some_news(bot, ev):
+    uid = ev.user_id
+    if not lmt.check(uid):
+        await bot.finish(ev, '您查询得过于频繁，请稍等片刻', at_sender=True)
+    lmt.start_cd(uid)
+
+    condition = ev.message.extract_plain_text().strip()
+    if condition and '-' not in condition:
+        bot.finish(ev, "请输入正确的格式:洛谷月报 xxxx-xx")
+    now = datetime.now()
+    year = now.year
+    month = now.month
+    try:
+        if condition:
+            year, month = map(int, condition.split('-'))
+    except Exception as e:
+        sv.logger.error(f'Error: {e}')
+        bot.finish(ev, "不要捣乱哦")
+    msg = await get_luogu_news_condition(year, month)
+    msg = get_luogu_news_text(msg)
+    bot.finish(ev, msg)
+
+@sv.on_fullmatch('随机月报')
+async def get_luogu_random_new(bot, ev):
+    uid = ev.user_id
+    if not lmt.check(uid):
+        await bot.finish(ev, '您查询得过于频繁，请稍等片刻', at_sender=True)
+    lmt.start_cd(uid)
+
+    msg = await get_luogu_random_news()
+    msg = get_luogu_news_text(msg)
+    bot.finish(ev, msg)
+
+
+
 # @sv.on_fullmatch('通知我', only_to_me = True)
 # async def NoticeMe(bot, ev):
 #     message_type = session.ctx['message_type']
