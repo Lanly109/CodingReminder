@@ -65,7 +65,7 @@ async def get_now_contest(file_name):
 async def get_today_contest(file_name):
     now = datetime.now()
     today = now - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second)
-    tomorrow = now + timedelta(days=1)
+    tomorrow = today + timedelta(days=1)
     if isinstance(file_name, str):
         return await get_contest(file_name, lambda start, end, link: start >= today and end > now and start < tomorrow)
     else:
